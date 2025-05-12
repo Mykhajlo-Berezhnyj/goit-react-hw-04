@@ -1,65 +1,73 @@
+import React from 'react';
 import { useEffect, useState } from 'react';
-import initionalContacts from './contactList.json';
-import ContactList from './components/ContactList/ContactList';
-import SearchBox from './components/SearchBox/SearchBox';
-import ContactForm from './components/ContactForm/ContactForm';
-import { confirmAlert } from 'react-confirm-alert';
-import 'react-confirm-alert/src/react-confirm-alert.css';
+import { fetchImageSearchFromQuery } from './components/image-api';
+import ImageGallery from './components/ImageGallery/ImageGallery';
+import SearchBar from './components/SearchBar/SearchBar';
+import Loading from './components/Loading/Loading';
+import Error from './components/Error/Error';
+import ImageModal from './components/ImageModal/ImageModal';
+import LoadMoreBtn from './components/LoadMoreBtn/LoadMoreBtn';
 import './App.css';
 
 function App() {
-  const [contacts, setContacts] = useState(() => {
-    const savedPhoneBooks = window.localStorage.getItem('saved-phonebook');
-    if (savedPhoneBooks !== null) {
-      return JSON.parse(savedPhoneBooks);
-    }
-    return initionalContacts;
-  });
-  useEffect(() => {
-    window.localStorage.setItem('saved-phonebook', JSON.stringify(contacts));
-  }, [contacts]);
+  const [images, setImages] = useState([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(false);
+  const [query, setQuery] = useState('');
+  const [page, setPage] = useState(1);
+  const [selectedImages, setSelectedImages] = useState(null);
 
-  const [filter, setFilter] = useState('');
-
-  const normalize = str => str.replace(/[-*/.,!?;:()]/g, '');
-  const isNumeric = Number.isFinite(Number(normalize(filter)));
-  const filteredContacts = contacts.filter(
-    contact =>
-      contact.name.toLowerCase().includes(filter.toLowerCase()) ||
-      (isNumeric && normalize(contact.number).includes(normalize(filter))),
-  );
-
-  const addContact = newContact => {
-    setContacts(prev => {
-      return [...prev, newContact];
-    });
+  const openModal = image => {
+    setSelectedImages(image)
   };
 
-  const deleteContact = deleteId => {
-    confirmAlert({
-      title: 'Confirm Delete',
-      message: 'You confirm delete this contact?',
-      buttons: [
-        {
-          label: 'Yes',
-          onClick: () =>
-            setContacts(prev =>
-              prev.filter(contact => contact.id !== deleteId),
-            ),
-        },
-        {
-          label: 'No',
-        },
-      ],
-    });
+  const handleSearch = newQuery => {
+    setQuery(newQuery);
+    setPage(1);
+    setImages([]);
+    setError(false);
+  };
+
+  useEffect(() => {
+    if (!query) {
+      return;
+    }
+    const fetchImageSearch = async () => {
+      try {
+        setError(false);
+        setLoading(true);
+        const data = await fetchImageSearchFromQuery(query, page);
+        setImages(prev => [...prev, ...data]);
+      } catch (error) {
+        setError(true);
+      } finally {
+        setLoading(false);
+      }
+    };
+    fetchImageSearch();
+  }, [query, page]);
+
+  const handleLoadMore = () => {
+    setPage(prev => prev + 1);
   };
 
   return (
-    <div className="container">
-      <h1>Phonebook</h1>
-      <ContactForm onContact={addContact} />
-      <SearchBox value={filter} onFilterChange={setFilter} />
-      <ContactList contacts={filteredContacts} onDelete={deleteContact} />
+    <div>
+      <SearchBar onSearch={handleSearch} />
+      {loading && <Loading />}
+      {error && <Error />}
+      {images.length > 0 && <ImageGallery items={images} onImageClick = {openModal} />}
+      {!loading && images.length === 0 && query && (
+        <p>No images found for "{query}". Try a different search.</p>
+      )}
+      {images.length > 0 && images.length % 12 === 0 && !loading && (
+        <LoadMoreBtn onClick={handleLoadMore} />
+      )}
+      {selectedImages && <ImageModal
+        isOpen={openModal}
+        
+
+      />}
     </div>
   );
 }
