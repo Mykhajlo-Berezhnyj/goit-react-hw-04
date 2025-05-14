@@ -2,9 +2,10 @@ import React from 'react';
 import { useEffect, useState } from 'react';
 import { fetchImageSearchFromQuery } from './components/image-api';
 import ImageGallery from './components/ImageGallery/ImageGallery';
+import { Toaster } from 'react-hot-toast';
 import SearchBar from './components/SearchBar/SearchBar';
-import Loading from './components/Loading/Loading';
-import Error from './components/Error/Error';
+import Loader from './components/Loader/Loader';
+import ErrorMessage from './components/ErrorMessage/ErrorMessage';
 import ImageModal from './components/ImageModal/ImageModal';
 import LoadMoreBtn from './components/LoadMoreBtn/LoadMoreBtn';
 import './App.css';
@@ -12,7 +13,7 @@ import './App.css';
 function App() {
   const [images, setImages] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState(null);
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
   const [selectedImage, setSelectedImage] = useState(null);
@@ -21,7 +22,7 @@ function App() {
     setSelectedImage(image);
   };
 
-  const closeModal = image => {
+  const closeModal = () => {
     setSelectedImage(null);
   };
 
@@ -29,7 +30,7 @@ function App() {
     setQuery(newQuery);
     setPage(1);
     setImages([]);
-    setError(false);
+    setError(null);
   };
 
   useEffect(() => {
@@ -38,13 +39,12 @@ function App() {
     }
     const fetchImageSearch = async () => {
       try {
-        setError(false);
+        setError(null);
         setLoading(true);
         const data = await fetchImageSearchFromQuery(query, page);
         setImages(prev => [...prev, ...data]);
-        console.log('🚀 ~ fetchImageSearch ~ setImages:', setImages);
-      } catch (error) {
-        setError(true);
+      } catch (err) {
+         setError(err.message || 'Something went wrong.');
       } finally {
         setLoading(false);
       }
@@ -58,9 +58,12 @@ function App() {
 
   return (
     <div>
+      <Toaster
+         position="top-center"
+           reverseOrder={false} />
       <SearchBar onSearch={handleSearch} />
-      {loading && <Loading />}
-      {error && <Error />}
+      {loading && <Loader />}
+      {error && <ErrorMessage message={error} />}
       {images.length > 0 && (
         <ImageGallery items={images} onImageClick={openModal} />
       )}
@@ -71,7 +74,7 @@ function App() {
         <LoadMoreBtn onClick={handleLoadMore} />
       )}
       {selectedImage && (
-        <ImageModal isOpen={true} image={selectedImage} isClose={closeModal} />
+        <ImageModal isOpen={true} image={selectedImage} onClose={closeModal} />
       )}
     </div>
   );

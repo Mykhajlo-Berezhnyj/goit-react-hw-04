@@ -25,6 +25,7 @@
 }
 
 .title {
+  display: inline-block;
   margin-top: 0;
   font-size: 20px;
 }
@@ -34,10 +35,14 @@
 }
 
 .closeButton {
+  position: absolute;
+  top: 0;
+  right: 0;
   background-color: #e74c3c;
   color: white;
   border: none;
-  padding: 8px 12px;
+  padding: 0, 2px;
+  font-size: 20px;
   border-radius: 4px;
   cursor: pointer;
 }
