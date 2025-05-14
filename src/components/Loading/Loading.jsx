@@ -1,7 +1,7 @@
 import { RingLoader } from 'react-spinners';
 import css from './Loading.module.css';
 
-export default function Loading(loading) {
+export default function Loading() {
   return (
     <RingLoader
       className={css.loader}

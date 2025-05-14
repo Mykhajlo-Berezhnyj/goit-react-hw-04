@@ -1,10 +1,17 @@
 import css from './ImageCard.module.css';
 
-export default function ImageCard({ img }) {
-    return (
-        <div>
-            <img src= {img.urls.small} alt={img.alt_description} />
-
-        </div>
-    )
-};
+export default function ImageCard({ img, alt, user, likes, views, downloads }) {
+  return (
+    <div className={css.card}>
+      <img className={css.image} src={img} alt={alt} />
+      <div className={css.info}>
+        <p>
+          <strong>Author:</strong> {user}
+        </p>
+        <p>
+          <strong>Likes:</strong> {likes}
+        </p>
+      </div>
+    </div>
+  );
+}

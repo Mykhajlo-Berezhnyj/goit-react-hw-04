@@ -15,10 +15,14 @@ function App() {
   const [error, setError] = useState(false);
   const [query, setQuery] = useState('');
   const [page, setPage] = useState(1);
-  const [selectedImages, setSelectedImages] = useState(null);
+  const [selectedImage, setSelectedImage] = useState(null);
 
   const openModal = image => {
-    setSelectedImages(image)
+    setSelectedImage(image);
+  };
+
+  const closeModal = image => {
+    setSelectedImage(null);
   };
 
   const handleSearch = newQuery => {
@@ -38,6 +42,7 @@ function App() {
         setLoading(true);
         const data = await fetchImageSearchFromQuery(query, page);
         setImages(prev => [...prev, ...data]);
+        console.log('🚀 ~ fetchImageSearch ~ setImages:', setImages);
       } catch (error) {
         setError(true);
       } finally {
@@ -56,18 +61,18 @@ function App() {
       <SearchBar onSearch={handleSearch} />
       {loading && <Loading />}
       {error && <Error />}
-      {images.length > 0 && <ImageGallery items={images} onImageClick = {openModal} />}
+      {images.length > 0 && (
+        <ImageGallery items={images} onImageClick={openModal} />
+      )}
       {!loading && images.length === 0 && query && (
         <p>No images found for "{query}". Try a different search.</p>
       )}
       {images.length > 0 && images.length % 12 === 0 && !loading && (
         <LoadMoreBtn onClick={handleLoadMore} />
       )}
-      {selectedImages && <ImageModal
-        isOpen={openModal}
-        
-
-      />}
+      {selectedImage && (
+        <ImageModal isOpen={true} image={selectedImage} isClose={closeModal} />
+      )}
     </div>
   );
 }
